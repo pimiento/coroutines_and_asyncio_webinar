@@ -238,9 +238,9 @@
   #+end_src
   #+begin_src python :exports code :noweb strip-export :tangle tail_grep_gen.py :shebang "#!/usr/bin/env python3"
     <<follow>>
-    for line in grep(
+    for line in grep("org", grep(
         "python", follow("/tmp/t.txt")
-    ):
+    )):
         print(line)
   #+end_src
 * Пример использования генераторов
@@ -564,20 +564,21 @@
 
 * Запуск sync в async
   #+begin_src python :exports code :tangle run_in_executor.py :shebang "#!/usr/bin/env python3"
-    import asyncio
-    from requests import get
-    from contextlib import asynccontextmanager
+        import asyncio
+        from requests import get
+        from contextlib import asynccontextmanager
 
-    @asynccontextmanager
-    async def web_page(url):
+        @asynccontextmanager
+        async def web_page(url):
+            loop = asyncio.get_event_loop()
+            yield await loop.run_in_executor(
+                None, get, url)
+        async def main():
+            async with web_page(
+                    "https://ya.ru") as data:
+                print(data.content.decode("utf-8"))
         loop = asyncio.get_event_loop()
-        yield await loop.run_in_executor(
-            None, get, url)
-    async def main():
-        async with web_page("https://ya.ru") as data:
-            print(data.content.decode("utf-8"))
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
+        loop.run_until_complete(main())
   #+end_src
 
 * Запуск async в sync

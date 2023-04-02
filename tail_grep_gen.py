@@ -14,7 +14,7 @@ def follow(filepath):
                 time.sleep(0.1)
                 continue
             yield line
-for line in grep(
+for line in grep("org", grep(
     "python", follow("/tmp/t.txt")
-):
+)):
     print(line)

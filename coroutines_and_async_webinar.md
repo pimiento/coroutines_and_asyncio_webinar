@@ -1,41 +1,41 @@
-- [Что такое асинхронное программирование?](#org32b2c13)
-- [Пример синхронного программирования](#orge49405e)
-- [Пример асинхронного программирования](#orgbd9c9ac)
-- [Что такое генераторы в Python](#orgf1fe341)
-- [Генераторы](#org52ea750)
-- [Генераторы](#org88b84a9)
-- [Генераторы](#org592c3ba)
-- [Генераторы как контекстные менеджеры](#orgb0cdcdd)
-- [Пример использования генераторов](#orgedc6037)
-- [Пример использования генераторов](#org5b5a628)
-- [Пример использования генераторов](#org7cc12f8)
-- [Пример использования генераторов](#org6f961e1)
-- [Пример использования генераторов](#orgab69b4d)
-- [Корутины это генераторы](#org44b2090)
-- [Корутины](#org0f9c4b0)
-- [Пример использования корутин](#orgd8a9609)
-- [Пример использования корутин](#orgb0d858f)
-- [Task scheduling](#orgfc47439)
-- [Task](#orgd7d2cb0)
-- [Task example](#org8feefe6)
-- [Scheduler](#org80b0e85)
-- [Scheduler](#orgb311768)
-- [Scheduler example](#orgf67270a)
-- [Scheduler Exit](#org01b1466)
-- [Scheduler example](#orgf1f9086)
-- [Дополнительные материалы](#orgba4813f)
-- [AsyncIO](#org71670f5)
-- [AsyncIO event loop](#org774cd24)
-- [Запуск sync в async](#org99ded6a)
-- [Запуск async в sync](#orgf781fc7)
-- [Запуск async в sync](#org8fdc53a)
-- [Запуск async в Jupyter](#orgef1a85b)
-- [Дополнительная литература](#orgeccd3f5)
-- [Вопросы-ответы](#orgcf83f98)
+- [Что такое асинхронное программирование?](#org47ac6df)
+- [Пример синхронного программирования](#org08a044a)
+- [Пример асинхронного программирования](#org8af2ab8)
+- [Что такое генераторы в Python](#orgbf6384c)
+- [Генераторы](#org807bba7)
+- [Генераторы](#orgc4c5ecc)
+- [Генераторы](#org16c79a1)
+- [Генераторы как контекстные менеджеры](#orgc1f148f)
+- [Пример использования генераторов](#orgb4ff5b8)
+- [Пример использования генераторов](#orgee6308b)
+- [Пример использования генераторов](#org603bc38)
+- [Пример использования генераторов](#org3344cad)
+- [Пример использования генераторов](#org238497c)
+- [Корутины это генераторы](#orgb7a9e3b)
+- [Корутины](#org1dea153)
+- [Пример использования корутин](#org43655cb)
+- [Пример использования корутин](#orge568d35)
+- [Task scheduling](#orgfeee604)
+- [Task](#org4175018)
+- [Task example](#org959ffd0)
+- [Scheduler](#org9d94e5f)
+- [Scheduler](#orgc17de91)
+- [Scheduler example](#orgc26c327)
+- [Scheduler Exit](#orga388d39)
+- [Scheduler example](#org0d1a50c)
+- [Дополнительные материалы](#org04fc62b)
+- [AsyncIO](#org46d7a71)
+- [AsyncIO event loop](#org991ddf7)
+- [Запуск sync в async](#org359de9f)
+- [Запуск async в sync](#org2813db7)
+- [Запуск async в sync](#org2acd1df)
+- [Запуск async в Jupyter](#org5a7c2e6)
+- [Дополнительная литература](#org9bff094)
+- [Вопросы-ответы](#org2af5c81)
 
 
 
-<a id="org32b2c13"></a>
+<a id="org47ac6df"></a>
 
 # Что такое асинхронное программирование?
 
@@ -48,7 +48,7 @@
 </div>
 
 
-<a id="orge49405e"></a>
+<a id="org08a044a"></a>
 
 # Пример синхронного программирования
 
@@ -70,7 +70,7 @@ print("DONE")
     - DONE
 
 
-<a id="orgbd9c9ac"></a>
+<a id="org8af2ab8"></a>
 
 # Пример асинхронного программирования
 
@@ -92,7 +92,7 @@ print("DONE")
     - Got: 5
 
 
-<a id="orgf1fe341"></a>
+<a id="orgbf6384c"></a>
 
 # Что такое генераторы в Python
 
@@ -102,7 +102,7 @@ print("DONE")
 print(str(x) for x in range(10))
 ```
 
-    - <generator object <genexpr> at 0x7f7028f26ac0>
+    - <generator object <genexpr> at 0x7fcecba3bac0>
 
 ```python
 def countdown(n):
@@ -116,7 +116,7 @@ for i in countdown(3):
     - 3...2...1...
 
 
-<a id="org52ea750"></a>
+<a id="org807bba7"></a>
 
 # Генераторы
 
@@ -135,10 +135,10 @@ g = countdown(3)
 print(g)
 ```
 
-    - <generator object countdown at 0x7fa9e60fee40>
+    - <generator object countdown at 0x7f6aae07ee40>
 
 
-<a id="org88b84a9"></a>
+<a id="orgc4c5ecc"></a>
 
 # Генераторы
 
@@ -153,7 +153,7 @@ next(g)
     - Обратный отсёт для 3
 
 
-<a id="org592c3ba"></a>
+<a id="org16c79a1"></a>
 
 # Генераторы
 
@@ -176,7 +176,7 @@ except StopIteration:
     - КОНЕЦ
 
 
-<a id="orgb0cdcdd"></a>
+<a id="orgc1f148f"></a>
 
 # Генераторы как контекстные менеджеры
 
@@ -200,7 +200,7 @@ with timeit():
     2.00
 
 
-<a id="orgedc6037"></a>
+<a id="orgb4ff5b8"></a>
 
 # Пример использования генераторов
 
@@ -220,7 +220,7 @@ tail -f /tmp/t.txt | grep -i python
 ```
 
 
-<a id="org5b5a628"></a>
+<a id="orgee6308b"></a>
 
 # Пример использования генераторов
 
@@ -242,7 +242,7 @@ def follow(filepath, grepper):
 ```
 
 
-<a id="org7cc12f8"></a>
+<a id="org603bc38"></a>
 
 # Пример использования генераторов
 
@@ -256,7 +256,7 @@ def grep(pattern, lines):
 ```
 
 
-<a id="org6f961e1"></a>
+<a id="org3344cad"></a>
 
 # Пример использования генераторов
 
@@ -282,7 +282,7 @@ for line in grep(
 ```
 
 
-<a id="orgab69b4d"></a>
+<a id="org238497c"></a>
 
 # Пример использования генераторов
 
@@ -301,7 +301,7 @@ with open(
 ```
 
 
-<a id="org44b2090"></a>
+<a id="orgb7a9e3b"></a>
 
 # Корутины это генераторы
 
@@ -326,7 +326,7 @@ print(g.send(10))
     - 10
 
 
-<a id="org0f9c4b0"></a>
+<a id="org1dea153"></a>
 
 # Корутины
 
@@ -348,7 +348,7 @@ g.throw(ValueError, "foobar")
     - Поймал!
 
 
-<a id="orgd8a9609"></a>
+<a id="org43655cb"></a>
 
 # Пример использования корутин
 
@@ -366,7 +366,7 @@ def follow(filepath, target):
 ```
 
 
-<a id="orgb0d858f"></a>
+<a id="orge568d35"></a>
 
 # Пример использования корутин
 
@@ -392,14 +392,14 @@ follow("/tmp/t.txt", broadcast(
 ```
 
 
-<a id="orgfc47439"></a>
+<a id="orgfeee604"></a>
 
 # Task scheduling
 
 ![img](task_scheduling.png)  
 
 
-<a id="orgd7d2cb0"></a>
+<a id="org4175018"></a>
 
 # Task
 
@@ -420,7 +420,7 @@ class Task:
 ```
 
 
-<a id="org8feefe6"></a>
+<a id="org959ffd0"></a>
 
 # Task example
 
@@ -438,7 +438,7 @@ print(t1.run())
     - 1
 
 
-<a id="org80b0e85"></a>
+<a id="org9d94e5f"></a>
 
 # Scheduler
 
@@ -459,7 +459,7 @@ class Scheduler:
 ```
 
 
-<a id="orgb311768"></a>
+<a id="orgc17de91"></a>
 
 # Scheduler
 
@@ -475,7 +475,7 @@ def mainloop(self):
 ```
 
 
-<a id="orgf67270a"></a>
+<a id="orgc26c327"></a>
 
 # Scheduler example
 
@@ -498,7 +498,7 @@ sched.mainloop()
 ```
 
 
-<a id="org01b1466"></a>
+<a id="orga388d39"></a>
 
 # Scheduler Exit
 
@@ -519,7 +519,7 @@ def mainloop(self):
 ```
 
 
-<a id="orgf1f9086"></a>
+<a id="org0d1a50c"></a>
 
 # Scheduler example
 
@@ -542,7 +542,7 @@ sched.mainloop()
 ```
 
 
-<a id="orgba4813f"></a>
+<a id="org04fc62b"></a>
 
 # Дополнительные материалы
 
@@ -551,7 +551,7 @@ sched.mainloop()
 *презентация старая, там используется Python2, будьте внимательны, синтаксис немного отличается!*  
 
 
-<a id="org71670f5"></a>
+<a id="org46d7a71"></a>
 
 # AsyncIO
 
@@ -575,7 +575,7 @@ asyncio.run(main())
     - Two
 
 
-<a id="org774cd24"></a>
+<a id="org991ddf7"></a>
 
 # AsyncIO event loop
 
@@ -588,7 +588,7 @@ finally:
 ```
 
 
-<a id="org99ded6a"></a>
+<a id="org359de9f"></a>
 
 # Запуск sync в async
 
@@ -603,14 +603,15 @@ async def web_page(url):
     yield await loop.run_in_executor(
         None, get, url)
 async def main():
-    async with web_page("https://ya.ru") as data:
+    async with web_page(
+            "https://ya.ru") as data:
         print(data.content.decode("utf-8"))
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main())
 ```
 
 
-<a id="orgf781fc7"></a>
+<a id="org2813db7"></a>
 
 # Запуск async в sync
 
@@ -626,7 +627,7 @@ async def foo(n):
 ```
 
 
-<a id="org8fdc53a"></a>
+<a id="org2acd1df"></a>
 
 # Запуск async в sync
 
@@ -649,7 +650,7 @@ task(5)
     4
 
 
-<a id="orgef1a85b"></a>
+<a id="org5a7c2e6"></a>
 
 # Запуск async в Jupyter
 
@@ -664,7 +665,7 @@ await foo(5)
 ```
 
 
-<a id="orgeccd3f5"></a>
+<a id="org9bff094"></a>
 
 # Дополнительная литература
 
@@ -672,7 +673,7 @@ await foo(5)
 -   <span class="underline"><span class="underline">[Using AsyncIO in Python](https://www.oreilly.com/library/view/using-asyncio-in/9781492075325/)</span></span>
 
 
-<a id="orgcf83f98"></a>
+<a id="org2af5c81"></a>
 
 # Вопросы-ответы
 
