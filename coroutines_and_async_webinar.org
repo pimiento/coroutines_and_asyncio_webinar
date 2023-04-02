@@ -1,0 +1,622 @@
+#+TITLE: Генераторы. Корутины. Асинхронность
+#+EMAIL: @pvavilin
+#+AUTHOR: @pvavilin
+#+INFOJS_OPT: view:nil toc:nil ltoc:t mouse:underline buttons:0 path:https://orgmode.org/org-info.js
+#+startup: beamer
+#+LaTeX_CLASS: beamer
+#+LaTeX_CLASS_OPTIONS: [smallest]
+#+LATEX_HEADER: \usetheme{default}
+#+LATEX_HEADER: \usecolortheme{crane}
+#+LATEX_HEADER: \RequirePackage{fancyvrb}
+#+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\scriptsize}
+#+LaTeX_HEADER: \lstset{basicstyle=\scriptsize\ttfamily}
+#+OPTIONS: \n:t ^:nil
+* Что такое асинхронное программирование?
+  #+BEGIN_QUOTE
+  концепция программирования, которая заключается в том, что результат выполнения функции доступен не сразу же, а через некоторое время в виде некоторого асинхронного (нарушающего обычный порядок выполнения) вызова.
+  #+END_QUOTE
+  #+BEGIN_CENTER
+  __[[https://ru.wikipedia.org/wiki/%25D0%2590%25D1%2581%25D0%25B8%25D0%25BD%25D1%2585%25D1%2580%25D0%25BE%25D0%25BD%25D0%25BD%25D0%25BE%25D0%25B5_%25D0%25BF%25D1%2580%25D0%25BE%25D0%25B3%25D1%2580%25D0%25B0%25D0%25BC%25D0%25BC%25D0%25B8%25D1%2580%25D0%25BE%25D0%25B2%25D0%25B0%25D0%25BD%25D0%25B8%25D0%25B5][Wiki]]__
+  #+END_CENTER
+* Пример синхронного программирования
+  #+NAME: pool
+  #+begin_src python :exports none
+    from concurrent.futures import ThreadPoolExecutor
+
+    pool = ThreadPoolExecutor(max_workers=8)
+  #+end_src
+  #+BEGIN_SRC python :exports both :noweb strip-export :results output list :tangle sync.py :shebang "#!/usr/bin/env python3"
+    <<pool>>
+    def func(x, y):
+      import time
+      time.sleep(1)
+      return x + y
+    def run():
+      fut = pool.submit(func, 2, 3)
+      r = fut.result()
+      print('Got:', r)
+    run()
+    print("DONE")
+  #+END_SRC
+
+  #+RESULTS:
+  : - Got: 5
+  : - DONE
+
+* Пример асинхронного программирования
+  #+NAME:func
+  #+begin_src python :exports none :noweb strip-export
+    <<pool>>
+
+    def func(x, y):
+        import time
+        time.sleep(1)
+        return x + y
+  #+end_src
+  #+BEGIN_SRC python :exports both :noweb strip-export :results output list :tangle async.py :shebang "#!/usr/bin/env python3"
+    <<func>>
+    def result_handler(fut):
+        result = fut.result()
+        print('Got:', result)
+    def run():
+        fut = pool.submit(func, 2, 3)
+        fut.add_done_callback(
+            result_handler
+        )
+    run()
+    print("DONE")
+  #+END_SRC
+
+  #+RESULTS:
+  : - DONE
+  : - Got: 5
+
+* Что такое генераторы в Python
+  *Генератор* это функция, которая производит /последовательность результатов/ а не единичный ответ.
+  #+BEGIN_SRC python :exports both :results output list
+    print(str(x) for x in range(10))
+  #+END_SRC
+
+  #+RESULTS:
+  : - <generator object <genexpr> at 0x7f4bade61ac0>
+  #+BEGIN_SRC python :exports both :results output list
+    def countdown(n):
+        while n > 0:
+            yield n
+            n -= 1
+    for i in countdown(3):
+        print(i, sep='', end='...')
+  #+END_SRC
+
+  #+RESULTS:
+  : - 3...2...1...
+* Генераторы
+  Python понимает, что функция это генератор по наличию в функции метода *yield*.
+  \\
+  Генераторы не запускаются автоматически при вызове, а только инициализируются
+  #+NAME: countdown_generator
+  #+BEGIN_SRC python :exports none
+    def countdown(n):
+        print(f"Обратный отсёт для {n}")
+        while n > 0:
+            yield n
+            # точка остановки
+            n -= 1
+  #+END_SRC
+
+  #+BEGIN_SRC python :exports both :noweb yes :results output list
+    <<countdown_generator>>
+    g = countdown(3)
+    print(g)
+  #+END_SRC
+
+  #+RESULTS:
+  : <generator object countdown at 0x7f8095faae40>
+
+* Генераторы
+  Чтобы запустить генератор, надо вызывать метод *next*
+  #+BEGIN_SRC python :exports both :results output list :noweb strip-export
+    <<countdown_generator>>
+    g = countdown(3)
+    next(g)
+  #+END_SRC
+
+  #+RESULTS:
+  : Обратный отсёт для 3
+
+* Генераторы
+  Генератор будет работать до тех пор пока не случится *return*
+  #+BEGIN_SRC python :exports both :noweb strip-export :results output list
+    <<countdown_generator>>
+    g = countdown(2)
+    print(next(g))
+    print(next(g))
+    try:
+        print(next(g))
+    except StopIteration:
+        print("КОНЕЦ")
+  #+END_SRC
+
+  #+RESULTS:
+  : Обратный отсёт для 2
+  : 2
+  : 1
+  : КОНЕЦ
+
+* Генераторы как контекстные менеджеры
+  #+begin_src python :exports both :results output
+    from contextlib import contextmanager
+    import time
+
+    @contextmanager
+    def timeit():
+        import time
+        try:
+            start = time.time()
+            yield start
+        finally:
+            end = time.time()
+            print(f"{end-start:.2f}")
+    with timeit():
+        time.sleep(2)
+  #+end_src
+
+  #+RESULTS:
+  : 2.00
+
+* Пример использования генераторов
+  В Bash можно направлять результат работы одной программы в другую, причём данные в первую программу могут поступать даже после запуска /пайпа/
+  #+begin_src shell :exports code :tangle tail_grep.sh :shebang "#!/usr/bin/env bash"
+    # на случай если такого файла
+    # не существовало
+    # или в нём что-то уже было,
+    # запишем в него пустоту
+    :> /tmp/t.txt
+    # tail -f => "follow" новые строки
+    #                     в файле
+    # grep -i python => искать вхождение
+    #                   подстроки python
+    tail -f /tmp/t.txt | grep -i python
+  #+end_src
+
+* Пример использования генераторов
+  Как реализовать такое на Python?
+  #+NAME: call
+  #+begin_src python :exports none
+    import time
+
+    def grep(pattern):
+        pattern = pattern.lower()
+        def match(line):
+            if pattern in line.lower():
+                print(line)
+        return match
+
+    follow("/tmp/t.txt", grep("python"))
+  #+end_src
+  #+begin_src python :exports code :tangle tail_grep_loops.py :shebang "#!/usr/bin/env python3" :noweb strip-export
+    def follow(filepath, grepper):
+        with open(filepath, "r") as fd:
+            # "сикнемся" в конец файла
+            fd.seek(0, 2)
+            while True:
+                line = fd.readline()
+                if not line:
+                    # небольшая пауза
+                    time.sleep(0.1)
+                    continue
+                grepper(line)
+    <<call>>
+  #+end_src
+* Пример использования генераторов
+  #+NAME: import
+  #+begin_src python :exports none
+    import time
+  #+end_src
+  #+NAME: grep
+  #+begin_src python :exports code :noweb strip-export
+    <<import>>
+    def grep(pattern, lines):
+        pattern = pattern.lower()
+        for line in lines:
+            if pattern in line.lower():
+                yield line
+  #+end_src
+* Пример использования генераторов
+  #+NAME: follow
+  #+begin_src python :exports code :noweb strip-export
+    <<grep>>
+    def follow(filepath):
+        with open(filepath, "r") as fd:
+            fd.seek(0, 2)
+            while True:
+                line = fd.readline()
+                if not line:
+                    time.sleep(0.1)
+                    continue
+                yield line
+  #+end_src
+  #+begin_src python :exports code :noweb strip-export :tangle tail_grep_gen.py :shebang "#!/usr/bin/env python3"
+    <<follow>>
+    for line in grep(
+        "python", follow("/tmp/t.txt")
+    ):
+        print(line)
+  #+end_src
+* Пример использования генераторов
+  #+begin_src python :exports code :noweb strip-export :tangle grep_grep.py :shebang "#!/usr/bin/env python3"
+    <<grep>>
+    with open(
+      "/usr/share/doc/python3.10/copyright"
+    ) as fd:
+      print(
+        '\n'.join(grep(
+            "http",
+            grep("python", fd.readlines())
+          )
+        )
+      )
+  #+end_src
+* Корутины это генераторы
+  На самом деле *yield* принимает значение и возвращает его внутрь генератора.
+  #+NAME: generator_import
+  #+begin_src python :exports none
+    from typing import Generator
+  #+end_src
+  #+BEGIN_SRC python :exports both :results output list list :noweb strip-export
+    <<generator_import>>
+    # docs.python.org/3/library/typing.html
+    G = Generator[int, int, None]
+    def countdown(n) -> G:
+        while n > 0:
+            shift = (yield n)
+            n -= 1
+            if shift is not None:
+                n += shift
+    g = countdown(1)
+    print(next(g))
+    print(g.send(10))
+  #+END_SRC
+
+  #+RESULTS:
+  : - 1
+  : - 10
+
+* Корутины
+  В корутины можно передать эксепшен
+  #+BEGIN_SRC python :exports both :results output list
+    def cor(n):
+        while n > 0:
+            try:
+                yield n
+                n -= 1
+            except ValueError:
+                print("Поймал!")
+    g = cor(3)
+    next(g)
+    g.throw(ValueError, "foobar")
+  #+END_SRC
+
+  #+RESULTS:
+  : Поймал!
+
+* Пример использования корутин
+  #+NAME: coroutine
+  #+begin_src python :exports none
+    import time
+
+    def coroutine(func):
+        def start(*args,**kwargs):
+            cr = func(*args,**kwargs)
+            next(cr)
+            return cr
+        return start
+  #+end_src
+  #+NAME: follow_co
+  #+begin_src python :exports code :noweb strip-export
+    <<coroutine>>
+    def follow(filepath, target):
+        with open(filepath, "r") as fd:
+            fd.seek(0,2)
+            while True:
+                line = fd.readline()
+                if not line:
+                    time.sleep(0.1)
+                    continue
+                target.send(line)
+  #+end_src
+* Пример использования корутин
+  #+NAME: printer_co
+  #+begin_src python :exports code :noweb strip-export
+    <<follow_co>>
+    @coroutine
+    def printer():
+        while True:
+            line = (yield)
+            print(line)
+  #+end_src
+  #+begin_src python :exports none :noweb yes :tangle printer.py :shebang "#!/usr/bin/env python3"
+    <<printer_co>>
+    follow("/tmp/t.txt", printer())
+  #+end_src
+  #+begin_src python :exports code :noweb strip-export :tangle brodcast_printer.py :shebang "#!/usr/bin/env python3"
+    <<printer_co>>
+    @coroutine
+    def broadcast(targets):
+        while True:
+            item = (yield)
+            for target in targets:
+                target.send(item)
+    follow("/tmp/t.txt", broadcast(
+        [printer(), printer()]))
+  #+end_src
+* Task scheduling
+  [[file:task_scheduling.png]]
+* Task
+  #+NAME: task
+  #+BEGIN_SRC python :exports code
+    class Task:
+        task_id = 0
+        def __init__(self, target):
+            Task.task_id += 1
+            self.tid = Task.task_id
+            # target coroutine
+            self.target = target
+            # value to send
+            self.sendval = None
+        def run(self):
+            return self.target.send(
+                self.sendval
+            )
+  #+END_SRC
+
+* Task example
+  #+BEGIN_SRC python :exports both :results output list :noweb strip-export
+    <<task>>
+    def foo():
+        for i in range(2):
+            yield i
+    t1 = Task(foo())
+    print(t1.run())
+    print(t1.run())
+  #+END_SRC
+
+  #+RESULTS:
+  : 0
+  : 1
+
+* Scheduler
+  #+NAME: scheduler
+  #+BEGIN_SRC python :exports none :noweb strip-export
+    <<task>>
+    from queue import Queue
+
+    class Scheduler:
+
+        def __init__(self):
+            self.ready = Queue()
+            self.taskmap = {}
+
+        def new(self, target):
+            newtask = Task(target)
+            self.taskmap[newtask.tid] = newtask
+            self.schedule(newtask)
+            return newtask.tid
+
+        def schedule(self,task):
+            self.ready.put(task)
+
+        def mainloop(self):
+            while self.taskmap:
+                task = self.ready.get()
+                result = task.run()
+                self.schedule(task)
+  #+END_SRC
+  #+BEGIN_SRC python :exports code
+    from queue import Queue
+
+    class Scheduler:
+        def __init__(self):
+            self.ready = Queue()
+            self.taskmap = {}
+
+        def new(self, target):
+            newtask = Task(target)
+            self.taskmap[newtask.tid] \
+                = newtask
+            self.schedule(newtask)
+            return newtask.tid
+  #+END_SRC
+
+* Scheduler
+  #+BEGIN_SRC python :exports code
+        def schedule(self,task):
+            self.ready.put(task)
+
+        def mainloop(self):
+            while self.taskmap:
+                task = self.ready.get()
+                result = task.run()
+                self.schedule(task)
+  #+END_SRC
+
+* Scheduler example
+  #+BEGIN_SRC python :exports code :noweb strip-export :tangle inf_coroutine.py :shebang #!/usr/bin/python
+    <<scheduler>>
+    def foo():
+        while True:
+            print("I'm foo")
+            yield
+
+    def bar():
+        while True:
+            print("I'm bar")
+            yield
+
+    sched = Scheduler()
+    sched.new(foo())
+    sched.new(bar())
+    sched.mainloop()
+  #+END_SRC
+
+* Scheduler Exit
+  #+NAME: scheduler_2
+  #+BEGIN_SRC python :exports none :noweb strip-export
+    <<task>>
+    from queue import Queue
+
+    class Scheduler(object):
+        def __init__(self):
+            self.ready = Queue()
+            self.taskmap = {}
+
+        def new(self,target):
+            newtask = Task(target)
+            self.taskmap[newtask.tid] = newtask
+            self.schedule(newtask)
+            return newtask.tid
+
+        def exit(self,task):
+            print(f"Task {task.tid} terminated")
+            del self.taskmap[task.tid]
+
+        def schedule(self, task):
+            self.ready.put(task)
+
+        def mainloop(self):
+             while self.taskmap:
+                task = self.ready.get()
+                try:
+                    _ = task.run()
+                except StopIteration:
+                    self.exit(task)
+                    continue
+                self.schedule(task)
+  #+END_SRC
+  #+BEGIN_SRC python :exports code
+    def exit(self,task):
+        print(f"Task {task.tid} terminated")
+        del self.taskmap[task.tid]
+
+    def mainloop(self):
+         while self.taskmap:
+            task = self.ready.get()
+            try:
+                _ = task.run()
+            except StopIteration:
+                self.exit(task)
+                continue
+            self.schedule(task)
+  #+END_SRC
+
+* Scheduler example
+  #+BEGIN_SRC python :exports code :noweb strip-export :tangle exit_coroutine.py :shebang #!/usr/bin/python
+    <<scheduler_2>>
+    def foo(n):
+        for i in range(n):
+            print("I'm foo")
+            yield
+
+    def bar(n):
+        for i in range(n):
+            print("I'm bar")
+            yield
+
+    sched = Scheduler()
+    sched.new(foo(2))
+    sched.new(bar(2))
+    sched.mainloop()
+  #+END_SRC
+
+* Дополнительные материалы
+  __[[http://www.dabeaz.com/coroutines/][dabeaz.com]]__
+  \\
+  /презентация старая, там используется Python2, будьте внимательны, синтаксис немного отличается!/
+* AsyncIO
+  #+BEGIN_SRC python :exports both :results output list
+    import time
+    import asyncio
+    async def count():
+        print("One")
+        await asyncio.sleep(1)
+        print("Two")
+    async def main():
+        await asyncio.gather(
+            count(), count()
+        )
+    asyncio.run(main())
+  #+END_SRC
+
+  #+RESULTS:
+  : One
+  : One
+  : Two
+  : Two
+
+* AsyncIO event loop
+  #+BEGIN_SRC python :exports code
+    loop = asyncio.get_event_loop()
+    try:
+        loop.run_until_complete(main())
+    finally:
+        loop.close()
+  #+END_SRC
+
+* Запуск sync в async
+  #+begin_src python :exports code :tangle run_in_executor.py :shebang "#!/usr/bin/env python3"
+    import asyncio
+    from requests import get
+    from contextlib import asynccontextmanager
+
+    @asynccontextmanager
+    async def web_page(url):
+        loop = asyncio.get_event_loop()
+        yield await loop.run_in_executor(
+            None, get, url)
+    async def main():
+        async with web_page("https://ya.ru") as data:
+            print(data.content.decode("utf-8"))
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
+  #+end_src
+
+* Запуск async в sync
+  #+NAME: downloader
+  #+begin_src python :exports code :results output
+    # async downloader
+    async def rng(n):
+        for i in range(n):
+            yield i
+
+    async def foo(n):
+        async for i in rng(n):
+            print(i)
+  #+end_src
+
+* Запуск async в sync
+  #+begin_src python :exports both :results output :tangle async_in_sync.py :shebang "#!/usr/bin/env python3" :noweb strip-export
+    <<downloader>>
+    # sync scheduler
+    def task(n):
+        import asyncio
+        loop = asyncio.get_event_loop()
+        loop.run_until_complete(foo(n))
+
+    # register sync task in the sceduler
+    task(5)
+  #+end_src
+* Запуск async в Jupyter
+  __[[https://colab.research.google.com/drive/1uEcXaw_YCPLN2o8X0LefR7EZ_0hog0Tq#scrollTo=5yzPk0x9k23g][Проблема]]__
+  __[[https://stackoverflow.com/questions/47518874/how-do-i-run-python-asyncio-code-in-a-jupyter-notebook][Обсуждение]]__
+  #+begin_src python :exports code
+    # скорее всего даже не надо
+    %autowait asyncio
+
+    await foo(5)
+  #+end_src
+* Дополнительная литература
+  - __[[https://realpython.com/async-io-python/][AsyncIO in Python]]__
+  - __[[https://www.oreilly.com/library/view/using-asyncio-in/9781492075325/][Using AsyncIO in Python]]__
+* Вопросы-ответы
+  #+ATTR_LATEX: :width .6\textwidth
+  [[file:questions.jpg]]
