@@ -11,6 +11,11 @@
 #+LATEX_HEADER: \DefineVerbatimEnvironment{verbatim}{Verbatim}{fontsize=\scriptsize}
 #+LaTeX_HEADER: \lstset{basicstyle=\scriptsize\ttfamily}
 #+OPTIONS: \n:t ^:nil
+* Посещаемость
+  [[https://practicum.yandex.ru/webinar-form/python-developer-plus/][https://practicum.yandex.ru/webinar-form/python-developer-plus/]]
+
+  #+ATTR_LATEX: :width .47\textwidth
+  [[file:qrcode.png]]
 * Что такое асинхронное программирование?
   #+BEGIN_QUOTE
   концепция программирования, которая заключается в том, что результат выполнения функции доступен не сразу же, а через некоторое время в виде некоторого асинхронного (нарушающего обычный порядок выполнения) вызова.
